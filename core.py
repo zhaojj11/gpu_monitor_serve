@@ -50,8 +50,12 @@ class Container:
         return uuid.uuid5(uuid.NAMESPACE_URL, ip).hex
 
     def add(self, host):
-        host_ip = host['ip']
-        host_id = self.generate(host_ip)
+        host_ip = getattr(host, 'ip')
+        if host_ip is None:
+            host_id = host['id']
+        else:
+            host_ip = host['ip']
+            host_id = self.generate(host_ip)
         gpu_infos = host['gpus']
         host = Host(host_id, host_ip)
 
@@ -64,7 +68,11 @@ class Container:
     def update(self, host_):
         host_id = host_['id']
         gpu_states = host_['gpu_states']
-        host = self.hosts[host_id]
+        # host = self.hosts[host_id]
+        host = getattr(self.hosts, host_id)
+        if host is None:
+            self.add({'id': host_id, 'gpus': gpu_states})
+            return
         host.update(gpu_states)
 
     def __json__(self):
