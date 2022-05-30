@@ -8,6 +8,7 @@ from core import Container, GPU
 flask_app = Flask(__name__)
 sio = socketio.Server(cors_allowed_origins='*')
 container = Container()
+from urllib.parse import parse_qs
 
 
 @flask_app.route('/')
@@ -31,9 +32,15 @@ def gpu_state_update():
 
 
 @sio.event
-def connect(sid, env):
+def connect(sid, env, auth):
     # sio.enter_room(sid, 'gpu_update')
-    sio.emit('gpu_state_initialize', container.__json__())
+    u = parse_qs(env['QUERY_STRING'])
+    space = u['space'][0]
+    if space == 'global':
+        sio.emit('global_state_initialize', container.__json__())
+    else:
+        host_id = u['host_id'][0]
+        sio.emit('specific_state_initialize', container.specify_host_json(host_id))
 
 
 if __name__ == '__main__':

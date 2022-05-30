@@ -2,10 +2,13 @@ import uuid
 
 
 class GPU:
-    def __init__(self, id, power, memory):
+    def __init__(self, id, name, power_limit, memory_total):
         self.id = id
-        self.power = power
-        self.memory = memory
+        self.name = name
+        self.power_draw = 0.0
+        self.power_limit = power_limit
+        self.memory_total = memory_total
+        self.memory_used = 0
         self.temperature = 0.0
         self.utilization = 0
 
@@ -17,8 +20,9 @@ class GPU:
 
 
 class Host:
-    def __init__(self, host_id):
+    def __init__(self, host_id, host_ip):
         self.id = host_id
+        self.name = host_ip
         self.gpus = {}
 
     def add(self, gpu):
@@ -35,7 +39,7 @@ class Host:
         _gpus = {}
         for k, v in self.gpus.items():
             _gpus[k] = v.__json__()
-        return {'id': self.id, 'gpus': _gpus}
+        return {'id': self.id, 'name': self.name, 'gpus': _gpus}
 
 
 class Container:
@@ -48,11 +52,12 @@ class Container:
     def add(self, host):
         host_ip = host['ip']
         host_id = self.generate(host_ip)
-        gpu_infos = host['gpu_states']
-        host = Host(host_id)
+        gpu_infos = host['gpus']
+        host = Host(host_id, host_ip)
 
         for info in gpu_infos:
-            host.add(gpu=GPU(info['id'], power=info['power'], memory=info['memory']))
+            host.add(gpu=GPU(info['id'], power_limit=info['power_limit'], memory_total=info['memory_total'],
+                             name=info['name']))
         self.hosts[host_id] = host
         return host_id
 
@@ -67,3 +72,6 @@ class Container:
         for k, v in self.hosts.items():
             _hosts.append(v.__json__())
         return _hosts
+
+    def specify_host_json(self, host_id):
+        return self.hosts[host_id].__json__().copy()
