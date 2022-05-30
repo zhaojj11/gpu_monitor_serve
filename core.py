@@ -50,7 +50,10 @@ class Container:
         return uuid.uuid5(uuid.NAMESPACE_URL, ip).hex
 
     def add(self, host):
-        host_ip = getattr(host, 'ip')
+        try:
+            host_ip = host['ip']
+        except KeyError:
+            host_ip = None
         if host_ip is None:
             host_id = host['id']
         else:
@@ -69,7 +72,10 @@ class Container:
         host_id = host_['id']
         gpu_states = host_['gpu_states']
         # host = self.hosts[host_id]
-        host = getattr(self.hosts, host_id)
+        try:
+            host = self.hosts[host_id]
+        except KeyError:
+            host = None
         if host is None:
             self.add({'id': host_id, 'gpus': gpu_states})
             return

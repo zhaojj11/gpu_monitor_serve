@@ -4,11 +4,11 @@ from eventlet import wsgi
 import eventlet
 from flask import request
 from core import Container, GPU
+from urllib.parse import parse_qs
 
-flask_app = Flask(__name__)
+flask_app = Flask(__name__, static_url_path='')
 sio = socketio.Server(cors_allowed_origins='*')
 container = Container()
-from urllib.parse import parse_qs
 
 
 @flask_app.route('/')
